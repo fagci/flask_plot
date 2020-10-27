@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="chart" id="bargraph"></div>
+<script>
+    const gr = document.querySelector('#bargraph');
+    const socket = io();
+    socket.on('plot', (d) => {
+        Plotly.newPlot(gr, d.data, d.layout);
+    });
+</script>
+{% endblock %}
