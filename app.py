@@ -10,7 +10,6 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
-# app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app)
 
 N = 60
@@ -18,6 +17,8 @@ x = np.linspace(0, N, N)
 y_mem = deque([0 for _ in range(0, N)], N)
 y_cpu = deque([0 for _ in range(0, N)], N)
 
+cpu_count = psutil.cpu_count()
+mem_total = psutil.virtual_memory().total
 
 def update_plot():
     while True:
@@ -28,9 +29,7 @@ def update_plot():
 
 def create_plot():
     mem = psutil.virtual_memory().used
-    mem_total = psutil.virtual_memory().total
     cpu = psutil.cpu_percent()
-    cpu_count = psutil.cpu_count()
 
     y_mem.append(mem * 100 / mem_total)
     y_cpu.append(cpu)
