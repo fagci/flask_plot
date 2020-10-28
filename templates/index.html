@@ -5,8 +5,14 @@
 <script>
     const gr = document.querySelector('#bargraph');
     const socket = io();
+    let isNew = true
     socket.on('plot', (d) => {
-        Plotly.newPlot(gr, d.data, d.layout);
+        if(isNew) {
+            Plotly.newPlot(gr, d.data, d.layout);
+            isNew = false
+        } else {
+            Plotly.react(gr, d.data, d.layout);
+        }
     });
 </script>
 {% endblock %}
