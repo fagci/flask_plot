@@ -1,21 +1,22 @@
-import os
 import json
 import plotly
+import psutil
 import eventlet
 import numpy as np
 import pandas as pd
-import plotly.graph_objs as go
+from plotly.graph_objs import Scatter, Layout
 from collections import deque
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
-app.config['TEMPLATES_AUTO_RELOAD'] = True
+# app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app)
 
-N = 100
-x = np.linspace(0, 1, N)
-y = deque([0 for _ in range(0, N)], N)
+N = 60
+x = np.linspace(0, N, N)
+y_mem = deque([0 for _ in range(0, N)], N)
+y_cpu = deque([0 for _ in range(0, N)], N)
 
 
 def update_plot():
@@ -26,16 +27,23 @@ def update_plot():
 
 
 def create_plot():
-    info = os.popen('free -t -m').readlines()[1].split()[1:4]
-    tot_m, used_m, free_m = map(int, info)
+    mem = psutil.virtual_memory().used
+    mem_total = psutil.virtual_memory().total
+    cpu = psutil.cpu_percent()
+    cpu_count = psutil.cpu_count()
 
-    df = pd.DataFrame({'x': x, 'y': y})
+    y_mem.append(mem * 100 / mem_total)
+    y_cpu.append(cpu)
 
-    y.append(used_m)
+    df1 = pd.DataFrame({'x': x, 'y': y_mem})
+    df2 = pd.DataFrame({'x': x, 'y': y_cpu})
 
-    data = [go.Scatter(x=df['x'], y=df['y'])]
+    data = [
+            Scatter(x=df1['x'], y=df1['y'], name='RAM'),
+            Scatter(x=df2['x'], y=df2['y'], name='CPU')
+            ]
 
-    layout = go.Layout(yaxis=dict(range=[0, tot_m]))
+    layout = Layout(yaxis=dict(range=[0, 100]))
 
     graphJSON = json.dumps(dict(data=data,layout=layout), cls=plotly.utils.PlotlyJSONEncoder)
 

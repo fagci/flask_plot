@@ -3,3 +3,4 @@ flask-socketio
 plotly
 pandas
 eventlet
+psutil
